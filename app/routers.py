@@ -10,12 +10,12 @@ import secrets
 import logging
 import html
 
-from database import get_db
-from security import create_token, token_verify, is_valid_email, limiter, too_many_failures, failures
-from schemas import *
-from crud import *
-from services import check_threshold
-from alert import send_alert
+from app.database import get_db
+from app.security import create_token, token_verify, is_valid_email, limiter, too_many_failures, failures
+from app.schemas import *
+from app.crud import *
+from app.services import check_threshold
+from app.alert import send_alert
 
 
 password_hash = PasswordHash.recommended()

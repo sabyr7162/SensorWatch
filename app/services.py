@@ -4,8 +4,8 @@ import logging
 import os
 from datetime import datetime, timedelta, timezone
 
-from crud import delete_old_measurements
-from database import SessionLocal
+from app.crud import delete_old_measurements
+from app.database import SessionLocal
 
 RETENTION_DAYS = int(os.environ.get("RETENTION_DAYS", "30"))
 logger = logging.getLogger(__name__)

@@ -1,6 +1,6 @@
 from sqlalchemy import select, desc, delete
 
-from models import users, devices, measurements
+from app.models import users, devices, measurements
 
 
 # create user 

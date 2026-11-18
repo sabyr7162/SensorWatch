@@ -9,9 +9,9 @@ import os
 import html
 
 
-from crud import find_user_by_link, save_chat_id, save_telegram_link, get_status
-from database import SessionLocal
-from services import cleanup_loop
+from app.crud import find_user_by_link, save_chat_id, save_telegram_link, get_status
+from app.database import SessionLocal
+from app.services import cleanup_loop
 
 
 BOT_TOKEN = os.environ["BOT_TOKEN"]

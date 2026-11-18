@@ -10,10 +10,10 @@ import logging
 import sys
 import time
 
-from database import initialize_database
-from routers import router 
-from alert import lifespan
-from security import limiter
+from app.database import initialize_database
+from app.routers import router 
+from app.alert import lifespan
+from app.security import limiter
 
 logging.basicConfig(
     level=logging.INFO,
@@ -28,7 +28,7 @@ logger = logging.getLogger("Iot_backend")
 
 app = FastAPI(title='HomeSensor app', lifespan=lifespan)
 app.include_router(router)
-app.mount("/", StaticFiles(directory="static", html=True), name="static")
+app.mount("/", StaticFiles(directory="app/static", html=True), name="static")
 app.state.limiter = limiter
 initialize_database()
 

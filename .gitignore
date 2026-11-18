@@ -1,2 +1,3 @@
-sensor.db
 .env
+sensor.db
+app.log

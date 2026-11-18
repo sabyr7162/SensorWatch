@@ -1,0 +1,11 @@
+services:
+  web:
+    build: .
+    container_name: homesensor_backend
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=sqlite:///./sql_app.db
+    volumes:
+      - .:/app  # Optiona
