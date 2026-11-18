@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sensor Watch</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg: #eef1ef;
+      --card: #fff;
+      --ink: #14201c;
+      --mute: #5d6b66;
+      --line: #d5dcd8;
+      --accent: #0f6e8c;
+      --accent-ink: #fff;
+      --bad: #c8372d;
+      --good: #2e7d4f;
+      --r: 10px
+    }
+
+    @media (prefers-color-scheme:dark) {
+      :root {
+        --bg: #101614;
+        --card: #18211e;
+        --ink: #e8eeeb;
+        --mute: #93a39c;
+        --line: #2b3834;
+        --accent: #4db3d1;
+        --accent-ink: #06222c;
+        --bad: #ff7a6e;
+        --good: #6fcf97
+      }
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font: 15px/1.5 "Instrument Sans", system-ui, sans-serif;
+      font-variant-numeric: tabular-nums
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+      color: inherit
+    }
+
+    :focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px
+    }
+
+    a {
+      color: var(--accent)
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 20px;
+      border-bottom: 1px solid var(--line);
+      background: var(--card)
+    }
+
+    header .brand {
+      font-weight: 700;
+      letter-spacing: -.01em;
+      text-decoration: none;
+      color: var(--ink)
+    }
+
+    header nav {
+      display: flex;
+      gap: 16px
+    }
+
+    main {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 24px 20px 64px
+    }
+
+    .btn {
+      border: 1px solid var(--line);
+      background: var(--card);
+      padding: 8px 14px;
+      border-radius: 8px;
+      cursor: pointer
+    }
+
+    .btn:hover {
+      border-color: var(--accent)
+    }
+
+    .btn.primary {
+      background: var(--accent);
+      color: var(--accent-ink);
+      border-color: var(--accent);
+      font-weight: 600
+    }
+
+    .btn.danger {
+      color: var(--bad);
+      border-color: var(--bad)
+    }
+
+    .btn.sm {
+      padding: 4px 10px
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--r);
+      padding: 20px
+    }
+
+    .narrow {
+      max-width: 420px;
+      margin: 48px auto
+    }
+
+    h1 {
+      font-size: 26px;
+      letter-spacing: -.02em;
+      margin: 0 0 4px
+    }
+
+    h2 {
+      font-size: 17px;
+      margin: 0 0 12px
+    }
+
+    .mute {
+      color: var(--mute)
+    }
+
+    label {
+      display: block;
+      font-weight: 500;
+      margin: 14px 0 4px
+    }
+
+    input[type=text],
+    input[type=email],
+    input[type=password],
+    input[type=number] {
+      width: 100%;
+      padding: 9px 11px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--bg)
+    }
+
+    .row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap
+    }
+
+    .err {
+      color: var(--bad);
+      min-height: 1.4em;
+      margin-top: 10px
+    }
+
+    .ok {
+      color: var(--good)
+    }
+
+    /* device picker */
+    .picker {
+      position: relative;
+      display: inline-block
+    }
+
+    .picker>button {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: -.02em;
+      background: none;
+      border: 0;
+      padding: 0;
+      cursor: pointer
+    }
+
+    .picker>button .caret {
+      font-size: 14px;
+      color: var(--mute)
+    }
+
+    .menu {
+      position: absolute;
+      z-index: 20;
+      top: calc(100% + 8px);
+      left: 0;
+      min-width: 260px;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--r);
+      box-shadow: 0 8px 28px rgba(0, 0, 0, .18);
+      padding: 6px
+    }
+
+    .menu button {
+      display: flex;
+      width: 100%;
+      align-items: center;
+      gap: 10px;
+      text-align: left;
+      padding: 9px 10px;
+      border: 0;
+      background: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 400
+    }
+
+    .menu button:hover,
+    .menu button[aria-selected=true] {
+      background: var(--bg)
+    }
+
+    .menu hr {
+      border: 0;
+      border-top: 1px solid var(--line);
+      margin: 6px 0
+    }
+
+    .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--mute);
+      flex: none
+    }
+
+    .dot.on {
+      background: var(--good)
+    }
+
+    .seg {
+      display: inline-flex;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden
+    }
+
+    .seg button {
+      border: 0;
+      background: var(--card);
+      padding: 6px 12px;
+      cursor: pointer
+    }
+
+    .seg button[aria-pressed=true] {
+      background: var(--accent);
+      color: var(--accent-ink);
+      font-weight: 600
+    }
+
+    .top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 20px
+    }
+
+    /* readings */
+    .tiles {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+      gap: 14px;
+      margin-bottom: 20px
+    }
+
+    .tile .name {
+      color: var(--mute)
+    }
+
+    .tile .val {
+      font-size: 34px;
+      font-weight: 700;
+      letter-spacing: -.03em;
+      line-height: 1.15
+    }
+
+    .tile.bad .val {
+      color: var(--bad)
+    }
+
+    .band {
+      position: relative;
+      height: 6px;
+      border-radius: 3px;
+      background: var(--line);
+      margin: 12px 0 4px
+    }
+
+    .band i {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      border-radius: 3px;
+      background: var(--good);
+      opacity: .55
+    }
+
+    .band b {
+      position: absolute;
+      top: -4px;
+      width: 3px;
+      height: 14px;
+      border-radius: 2px;
+      background: var(--ink);
+      transform: translateX(-50%)
+    }
+
+    .tile.bad .band b {
+      background: var(--bad)
+    }
+
+    .bandlbl {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--mute)
+    }
+
+    .charts {
+      display: grid;
+      gap: 14px
+    }
+
+    .charts .card {
+      height: 260px
+    }
+
+    .empty {
+      text-align: center;
+      padding: 48px 20px
+    }
+
+    /* forms */
+    .thr {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr 1fr auto;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 8px
+    }
+
+    .thr.h {
+      color: var(--mute);
+      font-size: 13px
+    }
+
+    .check {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 14px;
+      font-weight: 500
+    }
+
+    .token {
+      font-family: ui-monospace, Menlo, monospace;
+      font-size: 13px;
+      word-break: break-all;
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .5);
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      z-index: 50
+    }
+
+    .modal .card {
+      max-width: 520px;
+      width: 100%
+    }
+
+    @media (max-width:560px) {
+      .thr {
+        grid-template-columns: 1fr 1fr auto
+      }
+
+      .thr input:first-child {
+        grid-column: 1/-1
+      }
+
+      .thr.h {
+        display: none
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header id="hdr"></header>
+  <main id="app"></main>
+
+  <script>
+    const API = '';   // same origin. For a separate origin use e.g. 'http://localhost:8000' (and enable CORS on the backend)
+    const $ = s => document.querySelector(s);
+    const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const store = {
+      get token() { return localStorage.getItem('token') },
+      set token(v) { v ? localStorage.setItem('token', v) : localStorage.removeItem('token') }
+    };
+    let timer = null, charts = [], devices = [];
+
+    async function api(path, { method = 'GET', json, form } = {}) {
+      const headers = {};
+      let body;
+      if (store.token) headers.Authorization = 'Bearer ' + store.token;
+      if (json !== undefined) { headers['Content-Type'] = 'application/json'; body = JSON.stringify(json) }
+      if (form) body = new URLSearchParams(form);
+      const res = await fetch(API + path, { method, headers, body });
+      let data = null;
+      try { data = await res.json() } catch { }
+      if (!res.ok) {
+        if (res.status === 401 && path !== '/users/login') { store.token = null; location.hash = '#/login' }
+        let msg = data && data.detail;
+        if (Array.isArray(msg)) msg = msg.map(e => (e.loc || []).slice(1).join('.') + ': ' + e.msg).join('; ');
+        const err = new Error(msg || 'Request failed (' + res.status + ')');
+        err.status = res.status;
+        throw err;
+      }
+      return data;
+    }
+
+    const utc = t => new Date(/Z$|[+-]\d\d:\d\d$/.test(t) ? t : t + 'Z');
+    const fmtTime = (t, long) => { const d = utc(t); return long ? d.toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) };
+    const isNum = v => typeof v === 'number' && isFinite(v);
+
+    /* ---------- layout ---------- */
+    function header() {
+      $('#hdr').innerHTML = `<a class="brand" href="#/dashboard">Sensor Watch</a>` + (store.token
+        ? `<nav><a href="#/dashboard">Dashboard</a><a href="#/account">Account</a><a href="#" id="out">Log out</a></nav>` : '');
+      const o = $('#out');
+      if (o) o.onclick = e => { e.preventDefault(); store.token = null; localStorage.removeItem('device'); location.hash = '#/login' };
+    }
+
+    function clearTimers() { clearInterval(timer); timer = null; charts.forEach(c => c.destroy()); charts = [] }
+
+    async function route() {
+      clearTimers();
+      const hash = location.hash.replace(/^#/, '') || '/dashboard';
+      const open = ['/login', '/register'];
+      if (!store.token && !open.includes(hash)) return location.hash = '#/login';
+      if (store.token && open.includes(hash)) return location.hash = '#/dashboard';
+      header();
+      const app = $('#app');
+      try {
+        if (hash === '/login') authView(app, 'login');
+        else if (hash === '/register') authView(app, 'register');
+        else if (hash === '/dashboard') await dashboard(app);
+        else if (hash === '/device/new') deviceForm(app, null);
+        else if (hash.startsWith('/device/')) deviceForm(app, await api('/users/device/' + parseInt(hash.split('/')[2])));
+        else if (hash === '/account') await account(app);
+        else location.hash = '#/dashboard';
+      } catch (e) {
+        if (e.status === 404 && hash.startsWith('/device/')) { location.hash = '#/dashboard' }
+        else app.innerHTML = `<div class="card empty"><p class="err">${esc(e.message)}</p><button class="btn" onclick="route()">Try again</button></div>`;
+      }
+    }
+    addEventListener('hashchange', route);
+
+    /* ---------- login / register ---------- */
+    function authView(app, mode) {
+      const login = mode === 'login';
+      app.innerHTML = `<form class="card narrow" id="f">
+    <h1>${login ? 'Log in' : 'Create account'}</h1>
+    <p class="mute">${login ? 'See your devices and their latest readings.' : 'Register to add devices and get alerts.'}</p>
+    <label for="em">Email</label><input id="em" type="email" autocomplete="email" required>
+    <label for="pw">Password</label><input id="pw" type="password" autocomplete="${login ? 'current-password' : 'new-password'}" required>
+    <div class="err" id="e" role="alert"></div>
+    <div class="row" style="margin-top:8px"><button class="btn primary" type="submit">${login ? 'Log in' : 'Create account'}</button>
+    <a href="#/${login ? 'register' : 'login'}">${login ? 'Create an account' : 'I already have an account'}</a></div></form>`;
+      $('#f').onsubmit = async ev => {
+        ev.preventDefault();
+        const email = $('#em').value.trim(), password = $('#pw').value;
+        try {
+          if (!login) await api('/users', { method: 'POST', json: { email, password } });
+          const r = await api('/users/login', { method: 'POST', form: { username: email, password } });
+          store.token = r.access_token;
+          location.hash = '#/dashboard';
+        } catch (e) { $('#e').textContent = e.message }
+      };
+    }
+
+    /* ---------- dashboard ---------- */
+    async function dashboard(app) {
+      devices = (await api('/users/device')).devices;
+      if (!devices.length) {
+        app.innerHTML = `<div class="card empty"><h1>No devices yet</h1><p class="mute">Add a device to get a token it can use to send measurements.</p><a class="btn primary" href="#/device/new" style="text-decoration:none;display:inline-block">Add device</a></div>`;
+        return;
+      }
+      let sel = devices.find(d => d.id == localStorage.getItem('device')) || devices[0];
+      let period = localStorage.getItem('period') || '24h';
+
+      app.innerHTML = `<div class="top">
+    <div><div class="picker" id="pick"></div><div class="mute" id="sub"></div></div>
+    <div class="row"><div class="seg" id="seg">${['1h', '24h', '7d', '30d'].map(p => `<button aria-pressed="${p === period}" data-p="${p}">${p}</button>`).join('')}</div>
+    <a class="btn sm" id="edit" href="#">Edit device</a></div></div>
+    <div id="tiles" class="tiles"></div><div id="charts" class="charts"></div>`;
+
+      const pick = $('#pick');
+      function drawPicker(openMenu) {
+        pick.innerHTML = `<button aria-haspopup="menu" aria-expanded="${!!openMenu}"><span class="dot ${sel.status ? 'on' : ''}"></span>${esc(sel.name)}<span class="caret">▾</span></button>` +
+          (openMenu ? `<div class="menu" role="menu">${devices.map(d => `<button role="menuitem" data-id="${d.id}" aria-selected="${d.id === sel.id}"><span class="dot ${d.status ? 'on' : ''}"></span>${esc(d.name)}</button>`).join('')}<hr><button data-new>+ Add device</button></div>` : '');
+        pick.querySelector('button').onclick = e => { e.stopPropagation(); drawPicker(!openMenu) };
+        pick.querySelectorAll('.menu button').forEach(b => b.onclick = () => {
+          if (b.hasAttribute('data-new')) return location.hash = '#/device/new';
+          sel = devices.find(d => d.id == b.dataset.id);
+          localStorage.setItem('device', sel.id);
+          drawPicker(false); load();
+        });
+      }
+      const close = () => { if (pick.querySelector('.menu')) drawPicker(false) };
+      document.onclick = close;
+      document.onkeydown = e => { if (e.key === 'Escape') close() };
+
+      $('#seg').onclick = e => {
+        const p = e.target.dataset.p; if (!p) return;
+        period = p; localStorage.setItem('period', p);
+        $('#seg').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', b.dataset.p === p));
+        load();
+      };
+
+      async function load() {
+        $('#edit').href = '#/device/' + sel.id;
+        $('#sub').textContent = sel.device_id + (sel.status ? '' : ' · disabled');
+        let latest = null, rows = [];
+        try { latest = await api(`/users/device/${sel.id}/measurements/latest`) } catch (e) { if (e.status !== 404) throw e }
+        if (latest) rows = await api(`/users/device/${sel.id}/measurements?period=${period}`);
+        drawTiles(latest); drawCharts(rows);
+      }
+
+      function drawTiles(latest) {
+        const t = $('#tiles');
+        if (!latest) { t.innerHTML = `<div class="card empty" style="grid-column:1/-1"><h2>No measurements yet</h2><p class="mute">Send a POST to <code>/users/device/measurements</code> with header <code>X-Device-Token</code>. The token is on the Edit device page.</p></div>`; $('#charts').innerHTML = ''; return }
+        const th = sel.thresholds || {};
+        t.innerHTML = Object.entries(latest.metrics).map(([k, v]) => {
+          const lim = th[k] || {}, lo = lim.min, hi = lim.max;
+          const bad = isNum(v) && ((lo != null && v < lo) || (hi != null && v > hi));
+          let band = '';
+          if (isNum(v) && (lo != null || hi != null)) {
+            const a = lo ?? Math.min(v, hi) - Math.abs(hi || 1) * .3, b = hi ?? Math.max(v, lo) + Math.abs(lo || 1) * .3;
+            const span = (b - a) || 1, from = a - span * .25, full = span * 1.5;
+            const pos = x => Math.max(0, Math.min(100, (x - from) / full * 100));
+            band = `<div class="band"><i style="left:${pos(a)}%;width:${pos(b) - pos(a)}%"></i><b style="left:${pos(v)}%"></b></div>
+          <div class="bandlbl"><span>${lo != null ? 'min ' + lo : ''}</span><span>${hi != null ? 'max ' + hi : ''}</span></div>`;
+          }
+          return `<div class="card tile ${bad ? 'bad' : ''}"><div class="name">${esc(k)}</div><div class="val">${esc(v)}</div>${band}</div>`;
+        }).join('') + `<div class="mute" style="grid-column:1/-1">Last reading ${esc(fmtTime(latest.received_at, true))}</div>`;
+      }
+
+      function drawCharts(rows) {
+        charts.forEach(c => c.destroy()); charts = [];
+        const box = $('#charts'); box.innerHTML = '';
+        const keys = [...new Set(rows.flatMap(r => Object.entries(r.metrics).filter(([, v]) => isNum(v)).map(([k]) => k)))];
+        const long = period === '7d' || period === '30d';
+        const css = getComputedStyle(document.documentElement);
+        const accent = css.getPropertyValue('--accent').trim(), bad = css.getPropertyValue('--bad').trim(), mute = css.getPropertyValue('--mute').trim(), line = css.getPropertyValue('--line').trim();
+        keys.forEach(k => {
+          const card = document.createElement('div'); card.className = 'card';
+          card.innerHTML = '<canvas></canvas>'; box.appendChild(card);
+          const lim = (sel.thresholds || {})[k] || {};
+          const ds = [{ label: k, data: rows.map(r => isNum(r.metrics[k]) ? r.metrics[k] : null), borderColor: accent, backgroundColor: accent, pointRadius: rows.length > 80 ? 0 : 2, tension: .25, borderWidth: 2, spanGaps: true }];
+          ['min', 'max'].forEach(m => { if (lim[m] != null) ds.push({ label: m, data: rows.map(() => lim[m]), borderColor: bad, borderDash: [5, 4], borderWidth: 1, pointRadius: 0 }) });
+          charts.push(new Chart(card.firstChild, {
+            type: 'line', data: { labels: rows.map(r => fmtTime(r.received_at, long)), datasets: ds },
+            options: {
+              responsive: true, maintainAspectRatio: false, animation: false, interaction: { mode: 'index', intersect: false },
+              plugins: { title: { display: true, text: k, color: mute, align: 'start' }, legend: { display: false } },
+              scales: { x: { ticks: { color: mute, maxTicksLimit: 8 }, grid: { display: false } }, y: { ticks: { color: mute }, grid: { color: line } } }
+            }
+          }));
+        });
+      }
+
+      drawPicker(false);
+      await load();
+      timer = setInterval(() => load().catch(() => { }), 60000);
+    }
+
+    /* ---------- device form (add + edit) ---------- */
+    function deviceForm(app, dev) {
+      const isNew = !dev;
+      const thr = Object.entries(dev?.thresholds || {}).map(([k, v]) => ({ k, min: v.min ?? '', max: v.max ?? '' }));
+      if (!thr.length) thr.push({ k: '', min: '', max: '' });
+      app.innerHTML = `<form class="card" id="f" style="max-width:640px;margin:0 auto">
+    <h1>${isNew ? 'Add device' : 'Edit device'}</h1>
+    <label for="did">Device ID</label><input id="did" type="text" required value="${esc(dev?.device_id)}" ${isNew ? '' : 'disabled'} placeholder="e.g. greenhouse-01">
+    ${isNew ? '' : '<div class="mute">The device ID can’t be changed after the device is created.</div>'}
+    <label for="nm">Name</label><input id="nm" type="text" required value="${esc(dev?.name)}">
+    <label class="check"><input id="st" type="checkbox" ${dev?.status === false ? '' : 'checked'}> Device is active</label>
+    <label>Alert thresholds</label>
+    <div class="mute" style="margin-bottom:8px">Use the metric names your device sends. Leave min or max empty for no limit.</div>
+    <div class="thr h"><span>Metric</span><span>Min</span><span>Max</span><span></span></div>
+    <div id="thr"></div>
+    <button type="button" class="btn sm" id="addrow">+ Add metric</button>
+    <div class="err" id="e" role="alert"></div>
+    <div class="row" style="margin-top:12px"><button class="btn primary" type="submit">${isNew ? 'Add device' : 'Save changes'}</button>
+      <a href="#/dashboard">Cancel</a>
+      ${isNew ? '' : '<button type="button" class="btn danger" id="del" style="margin-left:auto">Delete device</button>'}</div></form>
+    ${isNew ? '' : `<div class="card" style="max-width:640px;margin:16px auto 0"><h2>Device token</h2><p class="mute">The device sends this in the <code>X-Device-Token</code> header. Keep it secret.</p><div class="token">${esc(dev.token)}</div><button class="btn sm" id="cp" style="margin-top:10px">Copy token</button></div>`}`;
+
+      const box = $('#thr');
+      const draw = () => {
+        box.innerHTML = thr.map((r, i) => `<div class="thr"><input type="text" data-i="${i}" data-f="k" placeholder="temperature" aria-label="Metric" value="${esc(r.k)}">
+      <input type="number" step="any" data-i="${i}" data-f="min" aria-label="Min" value="${esc(r.min)}"><input type="number" step="any" data-i="${i}" data-f="max" aria-label="Max" value="${esc(r.max)}">
+      <button type="button" class="btn sm" data-rm="${i}" aria-label="Remove metric">✕</button></div>`).join('');
+      };
+      box.oninput = e => { const { i, f } = e.target.dataset; if (i != null) thr[i][f] = e.target.value };
+      box.onclick = e => { const i = e.target.dataset.rm; if (i != null) { thr.splice(i, 1); draw() } };
+      $('#addrow').onclick = () => { thr.push({ k: '', min: '', max: '' }); draw() };
+      draw();
+
+      if (!isNew) {
+        $('#cp').onclick = async e => { await navigator.clipboard.writeText(dev.token); e.target.textContent = 'Copied' };
+        $('#del').onclick = async () => {
+          if (!confirm(`Delete “${dev.name}” and all its measurements?`)) return;
+          try { await api('/users/device/' + dev.id, { method: 'DELETE' }); localStorage.removeItem('device'); location.hash = '#/dashboard' }
+          catch (e) { $('#e').textContent = e.message }
+        };
+      }
+
+      $('#f').onsubmit = async ev => {
+        ev.preventDefault();
+        const thresholds = {};
+        for (const r of thr) {
+          const k = r.k.trim(); if (!k) continue;
+          const lim = {};
+          if (r.min !== '') lim.min = Number(r.min);
+          if (r.max !== '') lim.max = Number(r.max);
+          if (lim.min != null && lim.max != null && lim.min > lim.max) return $('#e').textContent = `“${k}”: min must be lower than max.`;
+          thresholds[k] = lim;
+        }
+        const body = { name: $('#nm').value.trim(), status: $('#st').checked, thresholds };
+        try {
+          if (isNew) {
+            const r = await api('/users/device', { method: 'POST', json: { device_id: $('#did').value.trim(), ...body } });
+            tokenModal(r.token);
+          } else {
+            await api('/users/device/' + dev.id, { method: 'PATCH', json: body });
+            location.hash = '#/dashboard';
+          }
+        } catch (e) { $('#e').textContent = e.message }
+      };
+    }
+
+    function tokenModal(token) {
+      const m = document.createElement('div'); m.className = 'modal';
+      m.innerHTML = `<div class="card" role="dialog" aria-modal="true"><h2>Device added</h2>
+    <p>Copy the device token now and put it in your device’s <code>X-Device-Token</code> header.</p>
+    <div class="token">${esc(token)}</div>
+    <div class="row" style="margin-top:14px"><button class="btn" id="mc">Copy token</button><button class="btn primary" id="md">Go to dashboard</button></div></div>`;
+      document.body.appendChild(m);
+      $('#mc').onclick = async e => { await navigator.clipboard.writeText(token); e.target.textContent = 'Copied' };
+      $('#md').onclick = () => { m.remove(); location.hash = '#/dashboard' };
+    }
+
+    /* ---------- account ---------- */
+    async function account(app) {
+      const me = await api('/users');
+      app.innerHTML = `<div style="max-width:560px;margin:0 auto;display:grid;gap:16px">
+    <form class="card" id="pf"><h1>Account</h1><p class="mute">Signed in as ${esc(me.email)}</p>
+      <label for="em">New email</label><input id="em" type="email" placeholder="${esc(me.email)}">
+      <label for="pw">New password</label><input id="pw" type="password" autocomplete="new-password" placeholder="Leave empty to keep the current one">
+      <div class="err" id="pe" role="alert"></div>
+      <button class="btn primary" type="submit">Save changes</button></form>
+    <div class="card"><h2>Telegram alerts</h2>
+      <p id="tgs">${me.tg_chat_id ? '<span class="ok">Connected.</span> Alerts go to your Telegram chat.' : 'Not connected. Link your Telegram to get a message when a reading leaves its thresholds.'}</p>
+      <button class="btn" id="tg">${me.tg_chat_id ? 'Reconnect Telegram' : 'Connect Telegram'}</button><div class="err" id="te" role="alert"></div></div>
+    <div class="card"><h2>Delete account</h2><p class="mute">Removes your account, devices and measurements. This can’t be undone.</p>
+      <button class="btn danger" id="da">Delete account</button></div></div>`;
+
+      $('#pf').onsubmit = async ev => {
+        ev.preventDefault();
+        const body = {}, em = $('#em').value.trim(), pw = $('#pw').value;
+        if (em) body.email = em;
+        if (pw) body.password = pw;
+        if (!Object.keys(body).length) return $('#pe').textContent = 'Enter a new email or password.';
+        try { await api('/users', { method: 'PATCH', json: body }); $('#pe').innerHTML = '<span class="ok">Saved.</span>'; $('#pw').value = '' }
+        catch (e) { $('#pe').textContent = e.message }
+      };
+      $('#tg').onclick = async () => {
+        try {
+          const r = await api('/users/telegram/link', { method: 'POST' });
+          $('#tgs').innerHTML = `Open the link and press <b>Start</b> in Telegram: <a href="${esc(r.telegram_url)}" target="_blank" rel="noopener">${esc(r.telegram_url)}</a>`;
+          window.open(r.telegram_url, '_blank', 'noopener');
+        } catch (e) { $('#te').textContent = e.message }
+      };
+      $('#da').onclick = async () => {
+        if (!confirm('Delete your account for good?')) return;
+        try { await api('/users', { method: 'DELETE' }); store.token = null; location.hash = '#/login' }
+        catch (e) { alert(e.message) }
+      };
+    }
+
+    route();
+  </script>
+</body>
+
+</html>

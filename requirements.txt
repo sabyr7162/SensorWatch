@@ -1,0 +1,7 @@
+fastapi 
+uvicorn 
+sqlalchemy
+aiogram
+pyjwt
+pwdlib
+python-multipart
